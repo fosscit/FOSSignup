@@ -11,11 +11,10 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [driveFolderId, setDriveFolderId] = useState("");
   const [eventName, setEventName] = useState("");
-  const [showFolderModal, setShowFolderModal] = useState(false);
   const [formFields, setFormFields] = useState([]);
-  const [showFieldModal, setShowFieldModal] = useState(false);
-  const [newField, setNewField] = useState({ label: "", key: "", type: "text" });
   const [editIndex, setEditIndex] = useState(null);
+  const [newField, setNewField] = useState({ label: "", key: "", type: "text" });
+  const [isAddingField, setIsAddingField] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -72,7 +71,6 @@ export default function AdminDashboard() {
     try {
       await axios.post("http://localhost:5000/update-drive-folder-id", { folderId: driveFolderId });
       alert("Drive folder ID updated successfully");
-      setShowFolderModal(false);
     } catch (error) {
       console.error("Error updating drive folder ID:", error);
       alert("Failed to update drive folder ID");
@@ -98,13 +96,19 @@ export default function AdminDashboard() {
   const handleAddField = () => {
     setEditIndex(null);
     setNewField({ label: "", key: "", type: "text" });
-    setShowFieldModal(true);
+    setIsAddingField(true);
   };
   
   const handleEditField = (index) => {
     setEditIndex(index);
     setNewField({ ...formFields[index] });
-    setShowFieldModal(true);
+    setIsAddingField(true);
+  };
+  
+  const handleCancelEdit = () => {
+    setIsAddingField(false);
+    setEditIndex(null);
+    setNewField({ label: "", key: "", type: "text" });
   };
   
   const handleRemoveField = async (index) => {
@@ -148,7 +152,9 @@ export default function AdminDashboard() {
       
       await axios.post("http://localhost:5000/update-form-fields", updatedFields);
       setFormFields(updatedFields);
-      setShowFieldModal(false);
+      setIsAddingField(false);
+      setEditIndex(null);
+      setNewField({ label: "", key: "", type: "text" });
       alert(`Form field ${editIndex !== null ? 'updated' : 'added'} successfully`);
     } catch (error) {
       console.error("Error saving field:", error);
@@ -281,16 +287,84 @@ export default function AdminDashboard() {
                 <section id="form-fields" className="card shadow-sm">
                   <div className="card-header d-flex justify-content-between align-items-center bg-white py-3">
                     <h2 className="h5 mb-0">Registration Form Fields</h2>
-                    <button
-                      onClick={handleAddField}
-                      className="btn btn-info text-white"
-                    >
-                      <span className="me-1">+</span> Add New Field
-                    </button>
+                    {!isAddingField && (
+                      <button
+                        onClick={handleAddField}
+                        className="btn btn-info text-white"
+                      >
+                        <span className="me-1">+</span> Add New Field
+                      </button>
+                    )}
                   </div>
                   
                   <div className="card-body p-4">
-                    {formFields.length === 0 ? (
+                    {/* Inline Form for Adding/Editing Fields */}
+                    {isAddingField && (
+                      <div className="bg-light p-4 mb-4 rounded border">
+                        <h3 className="h6 mb-3">{editIndex !== null ? "Edit Field" : "Add New Field"}</h3>
+                        <div className="row g-3">
+                          <div className="col-md-4">
+                            <label className="form-label">Field Label</label>
+                            <input
+                              type="text"
+                              name="label"
+                              value={newField.label}
+                              onChange={handleFieldInputChange}
+                              placeholder="Enter your Name"
+                              className="form-control"
+                              required
+                            />
+                            <div className="form-text">What the user will see as the form label.</div>
+                          </div>
+                          <div className="col-md-4">
+                            <label className="form-label">Field Key</label>
+                            <input
+                              type="text"
+                              name="key"
+                              value={newField.key}
+                              onChange={handleFieldInputChange}
+                              placeholder="name"
+                              className="form-control"
+                              required
+                            />
+                            <div className="form-text">Column name in CSV. Use lowercase, no spaces.</div>
+                          </div>
+                          <div className="col-md-4">
+                            <label className="form-label">Input Type</label>
+                            <select
+                              name="type"
+                              value={newField.type}
+                              onChange={handleFieldInputChange}
+                              className="form-select"
+                            >
+                              <option value="text">Text</option>
+                              <option value="email">Email</option>
+                              <option value="tel">Phone</option>
+                              <option value="number">Number</option>
+                              <option value="date">Date</option>
+                              <option value="url">URL</option>
+                            </select>
+                            <div className="form-text">Type of input field.</div>
+                          </div>
+                        </div>
+                        <div className="mt-3 d-flex justify-content-end gap-2">
+                          <button
+                            className="btn btn-secondary"
+                            onClick={handleCancelEdit}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="btn btn-info text-white"
+                            onClick={handleSaveField}
+                          >
+                            {editIndex !== null ? "Update Field" : "Add Field"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {formFields.length === 0 && !isAddingField ? (
                       <div className="text-center py-5 text-muted">
                         <div className="display-4 mb-3">📝</div>
                         <p>No form fields configured. Add fields to create your registration form.</p>
@@ -359,22 +433,39 @@ export default function AdminDashboard() {
 
                 {/* Google Drive Settings */}
                 <section id="drive-settings" className="card shadow-sm">
-                  <div className="card-header d-flex justify-content-between align-items-center bg-white py-3">
+                  <div className="card-header bg-white py-3">
                     <h2 className="h5 mb-0">Google Drive Integration</h2>
-                    <button
-                      onClick={() => setShowFolderModal(true)}
-                      className="btn btn-info text-white"
-                    >
-                      Update Folder ID
-                    </button>
                   </div>
                   <div className="card-body p-4">
-                    <div>
-                      <h3 className="h6 text-muted mb-2">Current Folder ID</h3>
-                      <div className="p-3 bg-dark text-white rounded font-monospace text-break">
+                    <div className="row mb-3">
+                      <div className="col-md-3">
+                        <label htmlFor="driveFolderId" className="form-label fw-bold mb-0 pt-2">Drive Folder ID:</label>
+                      </div>
+                      <div className="col-md-9">
+                        <div className="input-group">
+                          <input
+                            type="text"
+                            id="driveFolderId"
+                            className="form-control"
+                            value={driveFolderId}
+                            onChange={(e) => setDriveFolderId(e.target.value)}
+                            placeholder="Enter Google Drive Folder ID"
+                          />
+                          <button
+                            onClick={handleSaveDriveFolderId}
+                            className="btn btn-info text-white"
+                          >
+                            Save
+                          </button>
+                        </div>
+                        <p className="text-muted small mt-2">This folder will be used to store registration documents and attachments. Find this ID in the URL of your Google Drive folder.</p>
+                      </div>
+                    </div>
+                    <div className="bg-light p-3 rounded mt-3">
+                      <h3 className="h6">Current Folder ID</h3>
+                      <div className="p-2 bg-dark text-white rounded font-monospace text-break">
                         {driveFolderId || "Not set"}
                       </div>
-                      <p className="text-muted small mt-2">This folder will be used to store registration documents and attachments.</p>
                     </div>
                   </div>
                 </section>
@@ -443,126 +534,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       </footer>
-
-      {/* Folder ID Modal */}
-      {showFolderModal && (
-        <div className="modal show d-block" tabIndex="-1">
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Update Google Drive Folder ID</h5>
-                <button type="button" className="btn-close" onClick={() => setShowFolderModal(false)}></button>
-              </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">Folder ID</label>
-                  <input
-                    type="text"
-                    value={driveFolderId}
-                    onChange={(e) => setDriveFolderId(e.target.value)}
-                    placeholder="Enter Google Drive Folder ID"
-                    className="form-control"
-                  />
-                  <div className="form-text">Find this ID in the URL of your Google Drive folder.</div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowFolderModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-info text-white"
-                  onClick={handleSaveDriveFolderId}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="modal-backdrop show" onClick={() => setShowFolderModal(false)}></div>
-        </div>
-      )}
-      
-      {/* Field Modal */}
-      {showFieldModal && (
-        <div className="modal show d-block" tabIndex="-1">
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">{editIndex !== null ? "Edit Field" : "Add New Field"}</h5>
-                <button type="button" className="btn-close" onClick={() => setShowFieldModal(false)}></button>
-              </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">Field Label</label>
-                  <input
-                    type="text"
-                    name="label"
-                    value={newField.label}
-                    onChange={handleFieldInputChange}
-                    placeholder="Enter your Name"
-                    className="form-control"
-                    required
-                  />
-                  <div className="form-text">This is what the user will see as the form label.</div>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Field Key</label>
-                  <input
-                    type="text"
-                    name="key"
-                    value={newField.key}
-                    onChange={handleFieldInputChange}
-                    placeholder="name"
-                    className="form-control"
-                    required
-                  />
-                  <div className="form-text">Used as column name in CSV. Use lowercase letters, no spaces.</div>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Input Type</label>
-                  <select
-                    name="type"
-                    value={newField.type}
-                    onChange={handleFieldInputChange}
-                    className="form-select"
-                  >
-                    <option value="text">Text</option>
-                    <option value="email">Email</option>
-                    <option value="tel">Phone</option>
-                    <option value="number">Number</option>
-                    <option value="date">Date</option>
-                    <option value="url">URL</option>
-                  </select>
-                  <div className="form-text">Type of input field to display on the form.</div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowFieldModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-info text-white"
-                  onClick={handleSaveField}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="modal-backdrop show" onClick={() => setShowFieldModal(false)}></div>
-        </div>
-      )}
     </div>
   );
 }
