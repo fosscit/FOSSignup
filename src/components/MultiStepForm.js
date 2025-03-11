@@ -379,8 +379,8 @@ const handlePrevious = () => {
       
       {/* Footer */}
       <div className="footer mt-auto py-2">
-        <p className="text-center mb-0 small">FOSS Club Registration Form v1.0 • Open-Source with ❤️ • github.com/foss-club/register</p>
-      </div>
+  <p className="text-center mb-0 small">Together, we build the future of open source |© FOSS-CIT 2024-25 | Developed by: Lithika Rajkumar</p>
+</div>
     </div>
   );
 }
