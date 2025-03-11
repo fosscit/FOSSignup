@@ -97,28 +97,55 @@ const handlePrevious = () => {
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
+    console.debug('Admin login attempt initiated');
+    console.debug(`Login attempt for username: ${adminCredentials.username}`);
+    
     setIsLoading(true);
     setLoginError("");
-
-    // Find the admin in the CSV data
-    const admin = adminList.find(
-      admin => 
-        admin.username === adminCredentials.username && 
-        admin.password === adminCredentials.password
-    );
-
-    if (admin) {
-      // Set admin session/token/etc
-      localStorage.setItem("adminLoggedIn", "true");
-      localStorage.setItem("adminName", admin.username);
+  
+    try {
+      console.debug('Fetching admin credentials from server');
+      // Fetch admin credentials from server
+      const response = await fetch('http://localhost:5000/admins');
       
-      // Navigate to admin dashboard
-      navigate("/admin-dashboard");
-    } else {
-      setLoginError("Invalid username or password");
-    }
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+      
+      const adminData = await response.json();
+      console.debug('Received admin credentials from server');
+  
+      // Check if credentials match
+      const isValid = 
+        adminCredentials.username === adminData.username && 
+        adminCredentials.password === adminData.password;
+  
+      console.debug('Admin authentication result:', isValid ? 'Success' : 'Failed');
+  
+      if (isValid) {
+        console.debug(`Successfully authenticated admin: ${adminData.username}`);
+        // Set admin session/token/etc
+        localStorage.setItem("adminLoggedIn", "true");
+        localStorage.setItem("adminName", adminData.username);
+        
+        // Navigate to admin dashboard
+        console.debug('Redirecting to admin dashboard');
+        navigate("/admin-dashboard");
+      } else {
+        console.debug('Authentication failed: Invalid credentials');
+        setLoginError("Invalid username or password");
+      }
+    } catch (error) {
+      console.error('Error during admin login:', error);
+      console.debug('Error type:', error.name);
+      console.debug('Error message:', error.message);
+      console.debug('Is network error:', error instanceof TypeError);
     
-    setIsLoading(false);
+      setLoginError("Login service unavailable");
+    } finally {
+      console.debug('Admin login process completed');
+      setIsLoading(false);
+    }
   };
 
   const handleAdminInputChange = (e) => {
