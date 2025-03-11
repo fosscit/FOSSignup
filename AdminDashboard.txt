@@ -1,0 +1,429 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+export default function AdminDashboard() {
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [driveFolderId, setDriveFolderId] = useState("");
+const [showFolderModal, setShowFolderModal] = useState(false);
+
+
+  const [formFields, setFormFields] = useState([]);
+  const [showFieldModal, setShowFieldModal] = useState(false);
+  const [newField, setNewField] = useState({ label: "", key: "", type: "text" });
+  const [editIndex, setEditIndex] = useState(null);
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Check if admin is logged in
+    const isAdmin = localStorage.getItem("adminLoggedIn") === "true";
+    if (!isAdmin) {
+      navigate("/");
+      return;
+    }
+    
+    // Fetch registrations data and form fields
+    const fetchData = async () => {
+      try {
+        const [registrationsRes, formFieldsRes] = await Promise.all([
+          axios.get("http://localhost:5000/registrations"),
+          axios.get("http://localhost:5000/form-fields")
+        ]);
+        
+        setRegistrations(registrationsRes.data);
+        setFormFields(formFieldsRes.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+
+
+
+    const fetchDriveFolderId = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/drive-folder-id");
+        setDriveFolderId(response.data.folderId);
+      } catch (error) {
+        console.error("Error fetching drive folder ID:", error);
+      }
+    };
+    
+    fetchDriveFolderId();
+  }, [navigate]);
+
+
+
+
+  const handleSaveDriveFolderId = async () => {
+    try {
+      await axios.post("http://localhost:5000/update-drive-folder-id", { folderId: driveFolderId });
+      alert("Drive folder ID updated successfully");
+      setShowFolderModal(false);
+    } catch (error) {
+      console.error("Error updating drive folder ID:", error);
+      alert("Failed to update drive folder ID");
+    }
+  };
+  
+  const handleLogout = () => {
+    localStorage.removeItem("adminLoggedIn");
+    localStorage.removeItem("adminName");
+    navigate("/");
+  };
+  
+  const handleAddField = () => {
+    setEditIndex(null);
+    setNewField({ label: "", key: "", type: "text" });
+    setShowFieldModal(true);
+  };
+  
+  const handleEditField = (index) => {
+    setEditIndex(index);
+    setNewField({ ...formFields[index] });
+    setShowFieldModal(true);
+  };
+  
+  const handleRemoveField = async (index) => {
+    if (!window.confirm("Are you sure you want to remove this field?")) return;
+    
+    const updatedFields = [...formFields];
+    updatedFields.splice(index, 1);
+    
+    try {
+      await axios.post("http://localhost:5000/update-form-fields", updatedFields);
+      setFormFields(updatedFields);
+      alert("Form field removed successfully");
+    } catch (error) {
+      console.error("Error removing field:", error);
+      alert("Failed to remove field");
+    }
+  };
+  
+  const handleSaveField = async () => {
+    // Validate input
+    if (!newField.label || !newField.key) {
+      alert("Please fill all required fields");
+      return;
+    }
+    
+    // Format key to be lowercase with no spaces
+    const formattedKey = newField.key.toLowerCase().replace(/\s+/g, '_');
+    const updatedField = { ...newField, key: formattedKey };
+    
+    try {
+      let updatedFields;
+      
+      if (editIndex !== null) {
+        // Update existing field
+        updatedFields = [...formFields];
+        updatedFields[editIndex] = updatedField;
+      } else {
+        // Add new field
+        updatedFields = [...formFields, updatedField];
+      }
+      
+      await axios.post("http://localhost:5000/update-form-fields", updatedFields);
+      setFormFields(updatedFields);
+      setShowFieldModal(false);
+      alert(`Form field ${editIndex !== null ? 'updated' : 'added'} successfully`);
+    } catch (error) {
+      console.error("Error saving field:", error);
+      alert("Failed to save field");
+    }
+  };
+  
+  const handleReorderFields = async (index, direction) => {
+    if (
+      (direction === 'up' && index === 0) || 
+      (direction === 'down' && index === formFields.length - 1)
+    ) return;
+    
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    const updatedFields = [...formFields];
+    
+    // Swap positions
+    [updatedFields[index], updatedFields[newIndex]] = [updatedFields[newIndex], updatedFields[index]];
+    
+    try {
+      await axios.post("http://localhost:5000/update-form-fields", updatedFields);
+      setFormFields(updatedFields);
+    } catch (error) {
+      console.error("Error reordering fields:", error);
+      alert("Failed to reorder fields");
+    }
+  };
+  
+  const handleFieldInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewField(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">Event Registration Dashboard</h1>
+          <div className="flex items-center">
+            <span className="mr-4">Welcome, {localStorage.getItem("adminName") || "Admin"}</span>
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+      
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Form Fields Management */}
+        <div className="bg-white shadow rounded-lg p-6 mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold">Registration Form Fields</h2>
+            <button
+              onClick={handleAddField}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition"
+            >
+              Add New Field
+            </button>
+          </div>
+          
+          {formFields.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No form fields configured. Add fields to create your registration form.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Field Key</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Input Type</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {formFields.map((field, index) => (
+                    <tr key={index}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleReorderFields(index, 'up')}
+                            disabled={index === 0}
+                            className={`p-1 rounded ${index === 0 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-100'}`}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            onClick={() => handleReorderFields(index, 'down')}
+                            disabled={index === formFields.length - 1}
+                            className={`p-1 rounded ${index === formFields.length - 1 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-100'}`}
+                          >
+                            ↓
+                          </button>
+                          <span>{index + 1}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{field.label}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{field.key}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{field.type}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEditField(index)}
+                            className="text-indigo-600 hover:text-indigo-900"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleRemoveField(index)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+
+        
+        
+        {/* Registration Entries */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-6">Registration Entries</h2>
+          
+          {loading ? (
+            <div className="text-center py-8">
+              <svg className="animate-spin h-10 w-10 mx-auto text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p className="mt-2 text-gray-500">Loading registration data...</p>
+            </div>
+          ) : registrations.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No registrations found.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {Object.keys(registrations[0]).map((key) => (
+                      <th key={key} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {key}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {registrations.map((registration, index) => (
+                    <tr key={index}>
+                      {Object.values(registration).map((value, i) => (
+                        <td key={i} className="px-6 py-4 whitespace-nowrap">{value || 'N/A'}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </main>
+
+
+<div className="bg-white shadow rounded-lg p-6 mb-8">
+  <div className="flex justify-between items-center mb-6">
+    <h2 className="text-xl font-semibold">Google Drive Folder ID</h2>
+    <button
+      onClick={() => setShowFolderModal(true)}
+      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition"
+    >
+      Update Folder ID
+    </button>
+  </div>
+  <p className="text-gray-600">Current Folder ID: {driveFolderId || "Not set"}</p>
+</div>
+
+{/* Folder ID Modal */}
+{showFolderModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+    <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+      <h3 className="text-lg font-semibold mb-4">Update Google Drive Folder ID</h3>
+      <input
+        type="text"
+        value={driveFolderId}
+        onChange={(e) => setDriveFolderId(e.target.value)}
+        placeholder="Enter Google Drive Folder ID"
+        className="w-full p-2 border border-gray-300 rounded mb-4"
+      />
+      <div className="flex justify-end space-x-2">
+        <button
+          onClick={() => setShowFolderModal(false)}
+          className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSaveDriveFolderId}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+      
+      {/* Field Modal */}
+      {showFieldModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+            <h3 className="text-lg font-semibold mb-4">
+              {editIndex !== null ? "Edit Field" : "Add New Field"}
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Field Label</label>
+                <input
+                  type="text"
+                  name="label"
+                  value={newField.label}
+                  onChange={handleFieldInputChange}
+                  placeholder="Enter your Name"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Field Key</label>
+                <input
+                  type="text"
+                  name="key"
+                  value={newField.key}
+                  onChange={handleFieldInputChange}
+                  placeholder="name"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Used as column name in CSV. Use lowercase letters, no spaces.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Input Type</label>
+                <select
+                  name="type"
+                  value={newField.type}
+                  onChange={handleFieldInputChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                >
+                  <option value="text">Text</option>
+                  <option value="email">Email</option>
+                  <option value="tel">Phone</option>
+                  <option value="number">Number</option>
+                  <option value="date">Date</option>
+                  <option value="url">URL</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 mt-6">
+              <button
+                onClick={() => setShowFieldModal(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveField}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

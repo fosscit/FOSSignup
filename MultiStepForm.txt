@@ -1,0 +1,231 @@
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+export default function MultiStepForm() {
+  const [formData, setFormData] = useState({});
+  const [step, setStep] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
+  const [adminList, setAdminList] = useState([]);
+  const [loginError, setLoginError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [formFields, setFormFields] = useState([]);
+  const navigate = useNavigate();
+  
+  // Fetch admin CSV and form fields on component mount
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        // Fetch admin list
+        const adminResponse = await axios.get("http://localhost:5000/admins");
+        setAdminList(adminResponse.data);
+        
+        // Fetch form fields configuration
+        const fieldsResponse = await axios.get("http://localhost:5000/form-fields");
+        setFormFields(fieldsResponse.data);
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+        // Fallback to default fields if the API fails
+        setFormFields([
+          { label: "Enter your Name", key: "name", type: "text" },
+          { label: "Enter your Email", key: "email", type: "email" },
+          { label: "Enter your Phone", key: "phone", type: "tel" },
+        ]);
+      }
+    };
+    
+    fetchInitialData();
+  }, []);
+
+  const handleNext = (e) => {
+    e.preventDefault();
+    const inputValue = e.target.elements.input.value.trim();
+    if (!inputValue) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      [formFields[step].key]: inputValue,
+    }));
+
+    if (step < formFields.length - 1) {
+      setStep((prev) => prev + 1);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    setSubmitted(true);
+    try {
+      await axios.post("http://localhost:5000/upload", formData);
+      alert("Form Submitted & Saved to Google Drive!");
+    } catch (error) {
+      alert("Error uploading to Google Drive!");
+      console.error(error);
+    }
+  };
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setLoginError("");
+
+    // Find the admin in the CSV data
+    const admin = adminList.find(
+      admin => 
+        admin.username === adminCredentials.username && 
+        admin.password === adminCredentials.password
+    );
+
+    if (admin) {
+      // Set admin session/token/etc
+      localStorage.setItem("adminLoggedIn", "true");
+      localStorage.setItem("adminName", admin.username);
+      
+      // Navigate to admin dashboard
+      navigate("/admin-dashboard");
+    } else {
+      setLoginError("Invalid username or password");
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleAdminInputChange = (e) => {
+    const { name, value } = e.target;
+    setAdminCredentials(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // If form fields are not yet loaded, show loading state
+  if (formFields.length === 0) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-r from-green-600 to-blue-600 text-white">
+        <div className="text-center">
+          <svg className="animate-spin h-10 w-10 mx-auto text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="mt-4">Loading registration form...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="h-screen flex items-center justify-center bg-gradient-to-r from-green-600 to-blue-600 text-white relative">
+      {/* Admin Login Button (always visible in top-right corner) */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={() => setShowAdminLogin(!showAdminLogin)}
+          className="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-md transition"
+        >
+          Admin Login
+        </button>
+      </div>
+
+      {/* Admin Login Modal */}
+      {showAdminLogin && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white text-black p-6 rounded-lg shadow-lg w-80"
+          >
+            <h2 className="text-xl font-semibold mb-4">Admin Login</h2>
+            {loginError && (
+              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded text-sm">
+                {loginError}
+              </div>
+            )}
+            <form onSubmit={handleAdminLogin}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">Username</label>
+                <input
+                  type="text"
+                  name="username"
+                  value={adminCredentials.username}
+                  onChange={handleAdminInputChange}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={adminCredentials.password}
+                  onChange={handleAdminInputChange}
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div className="flex justify-between">
+                <button
+                  type="button"
+                  onClick={() => setShowAdminLogin(false)}
+                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition flex items-center"
+                >
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Verifying
+                    </>
+                  ) : (
+                    'Login'
+                  )}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Registration Form */}
+      {submitted ? (
+        <h2 className="text-2xl font-semibold">Thank you for registering! 🎉</h2>
+      ) : (
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -50 }}
+          transition={{ duration: 0.5 }}
+          className="w-96 p-6 bg-white text-black rounded-lg shadow-lg"
+        >
+          <h2 className="text-xl font-semibold">{formFields[step].label}</h2>
+          <form onSubmit={handleNext} className="mt-4">
+            <input
+              type={formFields[step].type}
+              name="input"
+              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="mt-4 w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition"
+            >
+              {step < formFields.length - 1 ? "Next" : "Submit"}
+            </button>
+          </form>
+        </motion.div>
+      )}
+    </div>
+  );
+}
