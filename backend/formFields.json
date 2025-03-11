@@ -1,0 +1,1 @@
+[{"label":"Name","key":"name","type":"text"},{"label":"Email","key":"email","type":"email"},{"label":"Phone","key":"phone","type":"tel"},{"label":"teamname","key":"teamname","type":"text"},{"label":"coding","key":"coding","type":"text"},{"label":"teammembers","key":"teamcount","type":"number"}]

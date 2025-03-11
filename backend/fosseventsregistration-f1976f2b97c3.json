@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "fosseventsregistration",
+  "private_key_id": "f1976f2b97c386077f2be5aeb9b76128a50101ef",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCbQz6dUCImU7O7\nLOBWYFndyVb6+gVN+yFqHuQtmue8ceKIZJeQMWhMYiM0DzW/0iokN2PiXoMqVNWW\ncjjoW8qG811aMRkoSFhACM1P2+QPdWEQSKxrZ40fa3KQzjkjRjWECUTby4mfjCWG\ny2GDTRBluLn0OgyxZ+S7D0HEGOOwI88vOCbefKNGpgoC0VvsAHgN4sxLV+2fR7jF\n/J9Ba0YKq8swzT7fruLi5/jeVHKq3TMBC/v8Lh4uNVWASUIh7PZk35VQTzsefqr3\nIaKo0rZNboiU7Xyw+d2Hv9Rs1sy43NhsJpUQlObN0K49j6DXvIicC9muOvg5PYPi\nqc9O44aRAgMBAAECggEACb+wJ8qHSmbJC0CnGWVVXzKsLngSazIQiAxGgYKPeGqi\nMbQ3PAuOI/WphjRKSLAWi02bDPSoQbkv7BFh910EG3MecnJQxRG90M98rL3+1OWm\n4ZHemaPX3Zguil8YgVmANLksRKzECGuRU6RjjA4DsI9nxaj7cQw39XLgy0JQ0Zdk\n+otSjjYBIM5au8Wigl2dfyMpZ/oJxk4AFjbzdL7SkwClbeVFEFq97O3yn/K6zWTO\nPQMYLhwwnETRRnQ3rVKmaJLxXmlZCFrjteJwi8iwOstGzXGDYUe1gEvx6muKIsKc\nGA9H9H0NvNVpbbIjOEvZnozseUI2+PDdcxZ/GJO30QKBgQDIJMOHr5oSawRl5ckS\nhOS+g24ttnTUl51Env7uvKjVPAADKEn1QWDiqgv4Y5FImaS8vrmZC+nWR/Dkx73W\nmHcDllc7BokJBaW/c0W7hfqPzkGh55mEIC7XGAz48SJUI5kyqdALHCl27mz/mP4y\n7KBIIEdWNppXH2MookeeD0lbDQKBgQDGl/fB3Sql1cDmXFc3LL8JzxiTMDONd+jD\n5NueP1BzDswavaEG83v1Kz4zAG7CSnq9cLX5mhS03Yf308M3LvwnvBif4XaZgsxZ\nZP4nkr+DiPkqkTBVtX4FYN1VpMxjScFixyrNp7ZjQC5Zx56/c1lZR+lnRjBSxGJz\nZHg0KvWolQKBgQCVTu/beoILOXD3f3wIZ8Gp6qy4R4RS0KSPe7mdanrdULyFnnnG\nEDbyAX+altTcf1ppQDN/XGbe555rXiNeQzGOKIr8yrxSUbc74wfjhGjO/UTzPq7E\n5alr51JOKL2+XSw9ondEwoagZfBEoeMJJIPSKtptE6ECW7UCrEWXQbosxQKBgDKA\njtbUAXZup0FtlhhH3sUFz0AO7+034w998YOKolDAIJNkScDUxl8Qgh7CK2hpPFFU\nilJRJpbgByW0yl4MKr+IC9MMqPZc1s6c6izyGpW+jW6PwXTqVIPVoDOZVwigxvbx\noybtUWpn9eGK7AnPsZcMvIQwyzUhD9A8an0Jt7MJAoGALQMjQlLs2PGoeyj5K05D\nfQocVjmuhU/+QXK9BqrHAOjRpG4/u/aA8uW5+OJf4kjMdM7FH3CwZxIZ2oxNXRwn\n9NEvFc6ZYw50PAT0n4OxKX8RCUocPGQSP3SD3RszgGv0r1e6+EeVbk0IoFt9A/V2\nGr6hgykeI9XMJKyqiFiDY2g=\n-----END PRIVATE KEY-----\n",
+  "client_email": "fosseventreg@fosseventsregistration.iam.gserviceaccount.com",
+  "client_id": "107790127606551424527",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/fosseventreg%40fosseventsregistration.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

@@ -1,0 +1,420 @@
+/* Base styles */
+* {
+    box-sizing: border-box;
+    font-family: 'Courier New', monospace;
+  }
+  
+  body {
+    background-color: #121212;
+    color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Custom styles to maintain theme with Bootstrap */
+  .form-container {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #121212;
+    color: #ffffff !important; /* White text */
+  }
+  
+  /* Navigation Bar */
+  .nav-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem 1.5rem;
+    background-color: #000;
+    border-bottom: 1px solid #ffd700;
+    z-index: 10;
+  }
+  
+  .logo-icon {
+    width: 2rem;
+    height: 2rem;
+    stroke: #ffd700;
+  }
+  
+  .logo-container h1 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 0;
+    color: #ffffff !important; /* White text */
+  }
+  
+  .accent {
+    color: #ffd700;
+  }
+  
+  .admin-button {
+    background-color: #1a1a1a !important;
+    color: #ffd700 !important;
+    border: 1px solid #ffd700 !important;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+  }
+  
+  .admin-button:hover {
+    background-color: #333 !important;
+  }
+  
+  .admin-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  /* Background elements */
+  .background-elements {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+  }
+  
+
+  .prev-button {
+    background-color: #e9ecef;
+    color: #495057;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+  
+  .prev-button:hover {
+    background-color: #dee2e6;
+    color: #212529;
+  }
+  
+  .prev-button .button-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+
+  .terminal-text {
+    position: absolute;
+    font-size: 0.75rem;
+    opacity: 0.5;
+    line-height: 1.5;
+    color: #ffd700;
+  }
+  
+  .left-text {
+    left: 1rem;
+    top: 6rem;
+  }
+  
+  .right-text {
+    right: 1rem;
+    bottom: 6rem;
+  }
+  
+  /* Admin Modal */
+  /* Admin Modal */
+.modal-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.admin-modal {
+    background-color: #1a1a1a;
+    border: 1px solid #ffd700;
+    border-radius: 8px;
+    width: 30rem; /* Increased width */
+    height: auto; /* Adjust height as needed */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    padding: 2rem; /* Added padding for better spacing */
+}
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #333;
+  }
+  
+  .modal-header h2 {
+    color: #ffd700;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0;
+  }
+  
+  .window-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .window-button {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+  }
+  
+  .red { background-color: #ff5f57; }
+  .yellow { background-color: #ffbd2e; }
+  .green { background-color: #28c940; }
+  
+  .login-error {
+    margin: 1rem;
+    padding: 0.5rem;
+    background-color: #3a0000 !important;
+    border: 1px solid #ff5f57 !important;
+    color: #ff8080 !important;
+    border-radius: 4px;
+    font-size: 0.875rem;
+  }
+  
+  /* Custom form controls */
+  .custom-input {
+    background-color: #222 !important;
+    border: 1px solid #444 !important;
+    color: #ffffff !important; /* White text in input fields */
+    font-family: 'Courier New', monospace !important;
+  }
+  
+  .custom-input::placeholder {
+    color: #ffffff !important; /* White placeholder text */
+    opacity: 0.7;
+  }
+  
+  .custom-input:focus {
+    outline: none;
+    border-color: #ffd700 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25) !important;
+  }
+  
+  .cancel-button {
+    background-color: #333 !important;
+    color: #ccc !important;
+    border: none !important;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+  }
+  
+  .login-button {
+    background-color: #4a4000 !important;
+    color: #ffd700 !important;
+    border: none !important;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+  }
+  
+  .login-button:hover {
+    background-color: #665800 !important;
+  }
+  
+  .login-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  /* Loading state */
+  .spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 4px solid rgba(255, 215, 0, 0.1);
+    border-left-color: #ffd700;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Form styles */
+  .form-wrapper {
+    margin-top: 6rem;
+    margin-bottom: 3rem;
+    width: 100%;
+    max-width: 26rem;
+    z-index: 10;
+  }
+  
+  .form-card {
+    background-color: #1a1a1a !important;
+    border: 1px solid #ffd700 !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+  
+  .step-header h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #ffd700;
+  }
+
+
+
+
+  .logo-image {
+    height: 2.5rem;
+    max-width: 100px;
+    object-fit: contain;
+  }
+  
+  @media (max-width: 640px) {
+    .logo-image {
+      height: 2rem;
+      max-width: 70px;
+    }
+  }
+  
+
+  /* Step indicator text */
+.step-indicator {
+    color: #ffffff !important; /* White text */
+    font-size: 1rem; /* Adjust font size as needed */
+    font-weight: 500; /* Adjust font weight as needed */
+   /* margin-bottom: 1rem;  Add spacing if necessary */
+}
+  
+  .step-number {
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: #332b00;
+    border-radius: 50%;
+    font-weight: bold;
+    color: #ffd700;
+  }
+  
+  .input-container {
+    position: relative;
+  }
+  
+  .input-prefix {
+    position: absolute;
+    left: 0.75rem;
+    top: 0.75rem;
+    color: #ffd700;
+    opacity: 0.7;
+    z-index: 5;
+  }
+  
+  .input-container input {
+    padding-left: 2rem !important;
+  }
+  
+  .next-button {
+    background-color: #665800 !important;
+    color: #fff !important;
+    border: none !important;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.2s ease;
+  }
+  
+  .next-button:hover {
+    background-color: #997f00 !important;
+  }
+  
+  .button-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
+  /* Success screen */
+  .success-container {
+    background-color: #1a1a1a !important;
+    border: 1px solid #ffd700 !important;
+    border-radius: 8px !important;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+  
+  .success-icon {
+    width: 4rem;
+    height: 4rem;
+    background-color: #ffd700;
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .success-icon svg {
+    width: 2rem;
+    height: 2rem;
+    stroke-width: 3;
+  }
+  
+  .success-container h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffd700;
+  }
+  
+  .terminal-output {
+    background-color: #222;
+    border-radius: 4px;
+    padding: 0.75rem;
+    text-align: left;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #aaa;
+  }
+  
+  .success-text {
+    color: #25bf00;
+  }
+  
+  /* Footer */
+  .footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #000;
+    padding: 0.75rem 1.5rem;
+    text-align: center;
+    color: #777;
+    border-top: 1px solid #333;
+  }
+  
+  /* Media queries for responsiveness */
+  @media (max-width: 640px) {
+    .form-wrapper {
+      max-width: 90%;
+    }
+    
+    .nav-bar {
+      padding: 0.75rem 1rem;
+    }
+    
+    .logo-container h1 {
+      font-size: 1rem;
+    }
+    
+    .admin-button {
+      font-size: 0.75rem;
+      padding: 0.4rem 0.75rem !important;
+    }
+    
+    .step-header h2 {
+      font-size: 1rem;
+    }
+  }

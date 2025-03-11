@@ -1,0 +1,17 @@
+[
+  {
+    "label": "Enter your Name",
+    "key": "name",
+    "type": "text"
+  },
+  {
+    "label": "Enter your Email",
+    "key": "email",
+    "type": "email"
+  },
+  {
+    "label": "Enter your Phone",
+    "key": "phone",
+    "type": "tel"
+  }
+]
