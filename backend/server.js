@@ -1,3 +1,5 @@
+
+require('dotenv').config();
 const express = require("express");
 const fs = require("fs");
 const { google } = require("googleapis");
@@ -17,6 +19,8 @@ const driveFolderPath = path.join(__dirname, "driveFolder.json");
 
 // Path to the config file where settings will be stored
 const CONFIG_FILE_PATH = path.join(__dirname, 'config.json');
+
+
 
 
 // Initialize drive folder ID with default value if the file doesn't exist
@@ -50,14 +54,34 @@ const getFormFields = () => {
   }
 };
 
-// Get Drive service
 const getDriveService = async () => {
-  const auth = new google.auth.GoogleAuth({
-    keyFile: "D:/event-registration/backend/fosseventsregistration-f1976f2b97c3.json",
-    scopes: ["https://www.googleapis.com/auth/drive.file"],
-  });
+  try {
+    // Create credentials object from environment variables
+    const credentials = {
+      type: process.env.TYPE,
+      project_id: process.env.PROJECT_ID,
+      private_key_id: process.env.PRIVATE_KEY_ID,
+      private_key: process.env.PRIVATE_KEY,
+      client_email: process.env.CLIENT_EMAIL,
+      client_id: process.env.CLIENT_ID,
+      auth_uri: process.env.AUTH_URI,
+      token_uri: process.env.TOKEN_URI,
+      auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_X509_CERT_URL,
+      client_x509_cert_url: process.env.CLIENT_X509_CERT_URL,
+      universe_domain: process.env.UNIVERSE_DOMAIN
+    };
 
-  return google.drive({ version: "v3", auth });
+    // Use JWT auth with credentials from environment variables
+    const auth = new google.auth.GoogleAuth({
+      credentials: credentials,
+      scopes: ["https://www.googleapis.com/auth/drive.file"],
+    });
+
+    return google.drive({ version: "v3", auth });
+  } catch (error) {
+    console.error("Error creating Drive service:", error);
+    throw error;
+  }
 };
 
 
@@ -283,6 +307,41 @@ const addRegistrationToDrive = async (formData) => {
     return false;
   }
 };
+
+
+
+
+// Replace your /admins endpoint with this
+app.post('/admin/login', (req, res) => {
+  const { username, password } = req.body;
+  
+  // Get admin credentials from environment variables
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+
+  console.log("Login attempt:", username);
+  
+  if (username === adminUsername && password === adminPassword) {
+    // You might want to implement a proper JWT token here for better security
+    res.json({ 
+      success: true, 
+      message: 'Login successful',
+      username: adminUsername
+    });
+  } else {
+    res.status(401).json({ 
+      success: false, 
+      message: 'Invalid credentials' 
+    });
+  }
+});
+
+
+
+
+
+
 
 
 // GET endpoint to retrieve the current event name
@@ -548,27 +607,38 @@ app.get('/registrations', async (req, res) => {
 
 // Route to get admin credentials from CSV
 app.get('/admins', (req, res) => {
-  const results = [];
+  console.debug('Received request for admin credentials');
   
-  // Path to your admins.csv file
-  const csvPath = path.join(__dirname, 'admins.csv');
-  
-  // Check if file exists
-  if (!fs.existsSync(csvPath)) {
-    return res.status(404).json({ error: 'Admin file not found' });
+  try {
+    // Use admin credentials from environment variables
+    const adminName = process.env.ADMIN_NAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    console.debug('Checking if admin credentials are configured in environment');
+    
+    if (!adminName || !adminPassword) {
+      console.error('Admin credentials not properly configured in environment variables');
+      return res.status(500).json({ error: 'Admin configuration error' });
+    }
+    
+    const adminData = {
+      username: adminName,
+      password: adminPassword
+    };
+    
+    console.debug('Successfully retrieved admin credentials from environment');
+    console.debug(`Admin username configured: ${adminName}`);
+    
+    res.json(adminData);
+  } catch (error) {
+    console.error('Error retrieving admin data:', error);
+    console.debug('Error details:', JSON.stringify(error, null, 2));
+    res.status(500).json({ error: 'Failed to retrieve admin data' });
   }
-  
-  fs.createReadStream(csvPath)
-    .pipe(csv())
-    .on('data', (data) => results.push(data))
-    .on('end', () => {
-      res.json(results);
-    })
-    .on('error', (error) => {
-      console.error('Error reading admin CSV:', error);
-      res.status(500).json({ error: 'Failed to read admin data' });
-    });
 });
+
+
+
 
 // New endpoint to manually clear the Drive CSV
 app.post('/clear-csv', async (req, res) => {
@@ -595,5 +665,14 @@ app.post('/clear-csv', async (req, res) => {
     res.status(500).json({ error: "Failed to clear CSV" });
   }
 });
+
+
+// Log environment variables for debugging
+console.log("Environment Variables:");
+console.log("Admin Name:", process.env.ADMIN_NAME);
+console.log("Admin password:", process.env.ADMIN_PASSWORD);
+
+console.log('All environment variables:');
+console.log(process.env);
 
 app.listen(5000, () => console.log("Server running on port 5000"));
