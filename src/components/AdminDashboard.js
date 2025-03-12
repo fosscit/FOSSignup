@@ -12,6 +12,8 @@ export default function AdminDashboard() {
   const [driveFolderId, setDriveFolderId] = useState("");
   const [eventName, setEventName] = useState("");
   const [eventDescription, setEventDescription] = useState("");
+  const [formActive, setFormActive] = useState(true);
+
   const [formFields, setFormFields] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [newField, setNewField] = useState({ label: "", key: "", type: "text" });
@@ -56,19 +58,41 @@ export default function AdminDashboard() {
     
     fetchDriveFolderId();
     
-    const fetchEventDetails = async () => {
+    const fetchEventName = async () => {
       try {
-        const eventNameResponse = await axios.get("https://fossignup.onrender.com/event-name");
-        setEventName(eventNameResponse.data.eventName || "");
-        
-        const eventDescResponse = await axios.get("https://fossignup.onrender.com/event-description");
-        setEventDescription(eventDescResponse.data.eventDescription || "");
+        const response = await axios.get("https://fossignup.onrender.com/event-name");
+        setEventName(response.data.eventName || "");
       } catch (error) {
-        console.error("Error fetching event details:", error);
+        console.error("Error fetching event name:", error);
       }
     };
     
-    fetchEventDetails();
+    fetchEventName();
+
+    const fetchEventDescription = async () => {
+      try {
+        const response = await axios.get("https://fossignup.onrender.com/event-description");
+        setEventDescription(response.data.eventDescription || "");
+      } catch (error) {
+        console.error("Error fetching event description:", error);
+      }
+    };
+
+    fetchEventDescription();
+    
+    // Fetch form status
+    const fetchFormStatus = async () => {
+      try {
+        const response = await axios.get("https://fossignup.onrender.com/form-status");
+        setFormActive(response.data.active);
+      } catch (error) {
+        console.error("Error fetching form status:", error);
+        // Default to active if can't fetch status
+        setFormActive(true);
+      }
+    };
+
+    fetchFormStatus();
   }, [navigate]);
 
   const handleSaveDriveFolderId = async () => {
@@ -100,7 +124,19 @@ export default function AdminDashboard() {
       alert("Failed to update event description");
     }
   };
-  
+
+  const handleToggleFormStatus = async () => {
+    try {
+      const newStatus = !formActive;
+      await axios.post("https://fossignup.onrender.com/update-form-status", { active: newStatus });
+      setFormActive(newStatus);
+      alert(`Form is now ${newStatus ? "accepting" : "not accepting"} responses`);
+    } catch (error) {
+      console.error("Error updating form status:", error);
+      alert("Failed to update form status");
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("adminLoggedIn");
     localStorage.removeItem("adminName");
@@ -244,6 +280,9 @@ export default function AdminDashboard() {
                       <a href="#event-settings" className="nav-link text-white active">Event Settings</a>
                     </li>
                     <li className="nav-item">
+                      <a href="#form-status" className="nav-link text-white">Form Status</a>
+                    </li>
+                    <li className="nav-item">
                       <a href="#form-fields" className="nav-link text-white">Form Fields</a>
                     </li>
                     <li className="nav-item">
@@ -294,30 +333,81 @@ export default function AdminDashboard() {
                         <p className="text-muted small mt-2">This name will be displayed on the registration form and all related communications.</p>
                       </div>
                     </div>
-                    
-                    <div className="row">
+
+                    <div className="row mb-4">
                       <div className="col-md-3">
                         <label htmlFor="eventDescription" className="form-label fw-bold mb-0 pt-2">Event Description:</label>
                       </div>
                       <div className="col-md-9">
-                        <div className="mb-2">
+                        <div className="mb-3">
                           <textarea
                             id="eventDescription"
                             className="form-control"
                             value={eventDescription}
                             onChange={(e) => setEventDescription(e.target.value)}
                             placeholder="Enter event description"
-                            rows="4"
-                          ></textarea>
+                            rows="5"
+                          />
                         </div>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <p className="text-muted small mb-0">Provide details about the event that will help attendees understand what to expect.</p>
+                        <div className="d-flex justify-content-end">
                           <button
                             onClick={handleSaveEventDescription}
                             className="btn btn-info text-white"
                           >
                             Save Description
                           </button>
+                        </div>
+                        <p className="text-muted small mt-2">This description will be displayed on the user dashboard.</p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                
+                {/* Form Status */}
+                <section id="form-status" className="card shadow-sm">
+                  <div className="card-header bg-white py-3">
+                    <h2 className="h5 mb-0">Form Status</h2>
+                  </div>
+                  <div className="card-body p-4">
+                    <div className="row">
+                      <div className="col-md-12">
+                        <div className="form-status-container d-flex justify-content-between align-items-center">
+                          <div>
+                            <h3 className="h6 mb-2">Registration Form Status</h3>
+                            <p className="text-muted mb-0">
+                              {formActive 
+                                ? "Form is currently accepting submissions" 
+                                : "Form is currently closed and not accepting submissions"}
+                            </p>
+                          </div>
+                          <div className="form-check form-switch">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id="formStatusToggle"
+                              style={{ width: "60px", height: "30px" }}
+                              checked={formActive}
+                              onChange={handleToggleFormStatus}
+                            />
+                            <label className="form-check-label ms-2" htmlFor="formStatusToggle">
+                              <span className={`badge ${formActive ? 'bg-success' : 'bg-danger'}`}>
+                                {formActive ? 'Active' : 'Inactive'}
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className={`alert ${formActive ? 'alert-success' : 'alert-warning'} mt-4`}>
+                          <div className="d-flex align-items-center">
+                            <div className={`status-indicator me-3 ${formActive ? 'bg-success' : 'bg-danger'}`} style={{ width: "12px", height: "12px", borderRadius: "50%" }}></div>
+                            <div>
+                              <p className="mb-0">
+                                {formActive 
+                                  ? "Users can currently submit new registrations" 
+                                  : "Users will see \"No longer accepting responses\" when they visit the form"}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
