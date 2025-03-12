@@ -11,11 +11,7 @@ const { Readable } = require('stream');
 
 const app = express();
 app.use(express.json());
-app.use(cors({
-  origin: ['https://fossignup.netlify.app', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors());
 
 // Path to the form fields configuration file
 const formFieldsPath = path.join(__dirname, "formFields.json");
@@ -23,6 +19,9 @@ const driveFolderPath = path.join(__dirname, "driveFolder.json");
 
 // Path to the config file where settings will be stored
 const CONFIG_FILE_PATH = path.join(__dirname, 'config.json');
+
+// Path to the formStatus.json file
+const formStatusFilePath = path.join(__dirname, "formStatus.json");
 
 
 
@@ -108,7 +107,86 @@ function readConfigFile() {
       }
     });
   });
+
 }
+
+
+
+
+
+// Helper function to read the form status
+const readFormStatus = () => {
+  try {
+    const data = fs.readFileSync(formStatusFilePath, "utf8");
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Error reading form status file:", error);
+    // If the file doesn't exist, create it with a default status
+    writeFormStatus(true); // Default to active
+    return { active: true };
+  }
+};
+
+// Helper function to write the form status
+const writeFormStatus = (status) => {
+  try {
+    fs.writeFileSync(formStatusFilePath, JSON.stringify({ active: status }, null, 2));
+  } catch (error) {
+    console.error("Error writing form status file:", error);
+  }
+};
+
+// Endpoint to get the current form status
+app.get("/form-status", (req, res) => {
+  try {
+    const formStatus = readFormStatus();
+    res.json(formStatus);
+  } catch (error) {
+    console.error("Error reading form status:", error);
+    res.status(500).json({ error: "Failed to fetch form status" });
+  }
+});
+
+// Endpoint to update the form status
+app.post("/update-form-status", (req, res) => {
+  try {
+    const { active } = req.body;
+
+    if (typeof active !== "boolean") {
+      return res.status(400).json({ error: "Invalid status value. Expected a boolean." });
+    }
+
+    // Update the form status in the JSON file
+    writeFormStatus(active);
+
+    res.json({ success: true, message: `Form is now ${active ? "active" : "inactive"}` });
+  } catch (error) {
+    console.error("Error updating form status:", error);
+    res.status(500).json({ error: "Failed to update form status" });
+  }
+});
+
+
+
+
+// Endpoint to update the form status
+app.post("/update-form-status", (req, res) => {
+  try {
+    const { active } = req.body;
+
+    if (typeof active !== "boolean") {
+      return res.status(400).json({ error: "Invalid status value. Expected a boolean." });
+    }
+
+    // Update the form status in the JSON file
+    writeFormStatus(active);
+
+    res.json({ success: true, message: `Form is now ${active ? "active" : "inactive"}` });
+  } catch (error) {
+    console.error("Error updating form status:", error);
+    res.status(500).json({ error: "Failed to update form status" });
+  }
+});
 
 // Function to write config to file
 function writeConfigFile(data) {
@@ -183,6 +261,49 @@ const getDriveFileId = async (driveService) => {
     throw error;
   }
 };
+
+
+
+
+// Function to read event description from storage
+async function readEventDescriptionFromStorage() {
+  const config = await readConfigFile();
+  return config.eventDescription || '';
+}
+
+// Function to save event description to storage
+async function saveEventDescriptionToStorage(eventDescription) {
+  const config = await readConfigFile();
+  config.eventDescription = eventDescription;
+  await writeConfigFile(config);
+}
+
+
+// GET endpoint to retrieve the current event description
+app.get("/event-description", async (req, res) => {
+  try {
+    const eventDescription = await readEventDescriptionFromStorage();
+    res.json({ eventDescription });
+  } catch (error) {
+    console.error("Error fetching event description:", error);
+    res.status(500).json({ error: "Failed to fetch event description" });
+  }
+});
+
+// POST endpoint to update the event description
+app.post("/update-event-description", async (req, res) => {
+  try {
+    const { eventDescription } = req.body;
+    
+    // Save event description to config file
+    await saveEventDescriptionToStorage(eventDescription);
+    
+    res.json({ success: true, message: "Event description updated successfully" });
+  } catch (error) {
+    console.error("Error updating event description:", error);
+    res.status(500).json({ error: "Failed to update event description" });
+  }
+});
 
 // Function to read data directly from Google Drive
 // Function to read data directly from Google Drive
@@ -320,11 +441,11 @@ app.post('/admin/login', (req, res) => {
   const { username, password } = req.body;
   
   // Get admin credentials from environment variables
-  const adminUsername = process.env.ADMIN_NAME;
+  const adminUsername = process.env.ADMIN_USERNAME;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
 
-  console.log("Login attempt:", username,password,adminUsername,adminPassword);
+  console.log("Login attempt:", username);
   
   if (username === adminUsername && password === adminPassword) {
     // You might want to implement a proper JWT token here for better security
@@ -334,7 +455,7 @@ app.post('/admin/login', (req, res) => {
       username: adminUsername
     });
   } else {
-    res.json({ 
+    res.status(401).json({ 
       success: false, 
       message: 'Invalid credentials' 
     });
@@ -610,6 +731,37 @@ app.get('/registrations', async (req, res) => {
 });
 
 // Route to get admin credentials from CSV
+app.get('/admins', (req, res) => {
+  console.debug('Received request for admin credentials');
+  
+  try {
+    // Use admin credentials from environment variables
+    const adminName = process.env.ADMIN_NAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    console.debug('Checking if admin credentials are configured in environment');
+    
+    if (!adminName || !adminPassword) {
+      console.error('Admin credentials not properly configured in environment variables');
+      return res.status(500).json({ error: 'Admin configuration error' });
+    }
+    
+    const adminData = {
+      username: adminName,
+      password: adminPassword
+    };
+    
+    console.debug('Successfully retrieved admin credentials from environment');
+    console.debug(`Admin username configured: ${adminName}`);
+    
+    res.json(adminData);
+  } catch (error) {
+    console.error('Error retrieving admin data:', error);
+    console.debug('Error details:', JSON.stringify(error, null, 2));
+    res.status(500).json({ error: 'Failed to retrieve admin data' });
+  }
+});
+
 
 
 
