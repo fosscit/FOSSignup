@@ -29,8 +29,8 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const [registrationsRes, formFieldsRes] = await Promise.all([
-          axios.get("http://localhost:5000/registrations"),
-          axios.get("http://localhost:5000/form-fields")
+          axios.get("https://fossignup.onrender.com/registrations"),
+          axios.get("https://fossignup.onrender.com/form-fields")
         ]);
         
         setRegistrations(registrationsRes.data);
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
 
     const fetchDriveFolderId = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/drive-folder-id");
+        const response = await axios.get("https://fossignup.onrender.com/drive-folder-id");
         setDriveFolderId(response.data.folderId);
       } catch (error) {
         console.error("Error fetching drive folder ID:", error);
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
 
   const handleSaveDriveFolderId = async () => {
     try {
-      await axios.post("http://localhost:5000/update-drive-folder-id", { folderId: driveFolderId });
+      await axios.post("https://fossignup.onrender.com/update-drive-folder-id", { folderId: driveFolderId });
       alert("Drive folder ID updated successfully");
     } catch (error) {
       console.error("Error updating drive folder ID:", error);
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
   
   const handleSaveEventName = async () => {
     try {
-      await axios.post("http://localhost:5000/update-event-name", { eventName });
+      await axios.post("https://fossignup.onrender.com/update-event-name", { eventName });
       alert("Event name updated successfully");
     } catch (error) {
       console.error("Error updating event name:", error);
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
     updatedFields.splice(index, 1);
     
     try {
-      await axios.post("http://localhost:5000/update-form-fields", updatedFields);
+      await axios.post("https://fossignup.onrender.com/update-form-fields", updatedFields);
       setFormFields(updatedFields);
       alert("Form field removed successfully");
     } catch (error) {
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
         updatedFields = [...formFields, updatedField];
       }
       
-      await axios.post("http://localhost:5000/update-form-fields", updatedFields);
+      await axios.post("https://fossignup.onrender.com/update-form-fields", updatedFields);
       setFormFields(updatedFields);
       setIsAddingField(false);
       setEditIndex(null);
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
     [updatedFields[index], updatedFields[newIndex]] = [updatedFields[newIndex], updatedFields[index]];
     
     try {
-      await axios.post("http://localhost:5000/update-form-fields", updatedFields);
+      await axios.post("https://fossignup.onrender.com/update-form-fields", updatedFields);
       setFormFields(updatedFields);
     } catch (error) {
       console.error("Error reordering fields:", error);
