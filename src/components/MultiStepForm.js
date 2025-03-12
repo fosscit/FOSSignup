@@ -206,9 +206,9 @@ const handlePrevious = () => {
           $ npm install<br />
           $ npm start<br />
           <br />
-          > Starting development server...<br />
-          > FOSS Club registration server running on port 3000<br />
-          > Ready for new contributors!<br />
+          $ Starting development server...<br />
+          $ FOSS Club registration server running on port 3000<br />
+          $ Ready for new contributors!<br />
         </div>
         <div className="terminal-text right-text">
           &lt;div className="open-source"&gt;<br />
