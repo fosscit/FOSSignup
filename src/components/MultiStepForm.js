@@ -12,7 +12,6 @@ export default function MultiStepForm() {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [eventName, setEventName] = useState("Event Registration");
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
-  const [adminList, setAdminList] = useState([]);
   const [loginError, setLoginError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [formFields, setFormFields] = useState([]);
@@ -23,8 +22,6 @@ export default function MultiStepForm() {
     const fetchInitialData = async () => {
       try {
         // Fetch admin list
-        const adminResponse = await axios.get("https://fossignup.onrender.com/admins");
-        setAdminList(adminResponse.data);
         
         // Fetch form fields configuration
         const fieldsResponse = await axios.get("https://fossignup.onrender.com/form-fields");
@@ -104,29 +101,25 @@ const handlePrevious = () => {
     setLoginError("");
   
     try {
-      console.debug('Fetching admin credentials from server');
-      // Fetch admin credentials from server
-      const response = await fetch('https://fossignup.onrender.com/admins');
+      console.debug('validating admin credentials with server');
+
+      const dataToSubmit = {username: adminCredentials.username,password:adminCredentials.password}
+      const response = await axios.post("https://fossignup.onrender.com/admin/login", dataToSubmit);
       
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error(`Server responded with ${response.status}`);
       }
+
+      const isValid =response.data.success;
+
       
-      const adminData = await response.json();
-      console.debug('Received admin credentials from server');
-  
-      // Check if credentials match
-      const isValid = 
-        adminCredentials.username === adminData.username && 
-        adminCredentials.password === adminData.password;
   
       console.debug('Admin authentication result:', isValid ? 'Success' : 'Failed');
   
       if (isValid) {
-        console.debug(`Successfully authenticated admin: ${adminData.username}`);
         // Set admin session/token/etc
         localStorage.setItem("adminLoggedIn", "true");
-        localStorage.setItem("adminName", adminData.username);
+        localStorage.setItem("adminName",adminCredentials.username);
         
         // Navigate to admin dashboard
         console.debug('Redirecting to admin dashboard');
