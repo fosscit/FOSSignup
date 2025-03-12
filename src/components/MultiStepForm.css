@@ -11,6 +11,92 @@
     padding: 0;
   }
   
+
+ /* Event Description Card Styles - Linux/FOSS Theme */
+.event-description-card {
+  max-width: 650px;
+  margin: 0 auto;
+  background-color: #2e3440;
+  border: 1px solid #434c5e;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.event-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: rgba(76, 86, 106, 0.4);
+  color: #81a1c1;
+}
+
+.event-title {
+  font-size: 1.8rem;
+  color: #47494d;
+  margin-bottom: 0.5rem;
+  font-family: 'Ubuntu Mono', monospace;
+}
+
+.event-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #cccdcd;
+  font-family: 'Fira Code', monospace;
+}
+
+.register-button {
+  background: linear-gradient(90deg, #ffd700, #e9e94b);
+  color: #29292a;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 4px;
+  border: none;
+  box-shadow: 0 4px 10px rgba(94, 129, 172, 0.3);
+  transition: all 0.3s ease;
+  font-family: 'Ubuntu Mono', monospace;
+}
+
+.register-button:hover {
+  background: linear-gradient(90deg, #81a1c1, #88c0d0);
+  box-shadow: 0 6px 15px rgba(94, 129, 172, 0.4);
+  transform: translateY(-2px);
+}
+
+.view-details-button {
+  background-color: transparent;
+  color: #88c0d0;
+  border: 1px solid #81a1c1;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  font-family: 'Ubuntu Mono', monospace;
+}
+
+.view-details-button:hover {
+  background-color: rgba(129, 161, 193, 0.1);
+  color: #a3be8c;
+}
+
+
+/* Custom scrollbar styles */
+.event-details::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.event-details::-webkit-scrollbar-track {
+  background: #2e3436; /* Dark gray track color */
+  border-radius: 4px; /* Rounded corners */
+}
+
+.event-details::-webkit-scrollbar-thumb {
+  background: #FFD700; /* Yellow thumb color */
+  border-radius: 4px; /* Rounded corners */
+}
+
+.event-details::-webkit-scrollbar-thumb:hover {
+  background: #FFA500; /* Darker yellow/orange on hover */
+}
+
+
   /* Custom styles to maintain theme with Bootstrap */
   .form-container {
     min-height: 100vh;
