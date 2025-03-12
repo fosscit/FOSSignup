@@ -12,7 +12,7 @@ const { Readable } = require('stream');
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: 'https://fossignup.vercel.app',
+  origin: 'https://fossignup.netlify.app/',
   credentials: true // If you need to support cookies/authentication
 }));
 
