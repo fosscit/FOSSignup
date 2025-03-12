@@ -57,7 +57,7 @@ export default function AdminDashboard() {
     
     const fetchEventName = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/event-name");
+        const response = await axios.get("https://fossignup.onrender.com/event-name");
         setEventName(response.data.eventName || "");
       } catch (error) {
         console.error("Error fetching event name:", error);
