@@ -23,15 +23,15 @@ export default function MultiStepForm() {
     const fetchInitialData = async () => {
       try {
         // Fetch admin list
-        const adminResponse = await axios.get("http://localhost:5000/admins");
+        const adminResponse = await axios.get("https://fossignup.onrender.com/admins");
         setAdminList(adminResponse.data);
         
         // Fetch form fields configuration
-        const fieldsResponse = await axios.get("http://localhost:5000/form-fields");
+        const fieldsResponse = await axios.get("https://fossignup.onrender.com/form-fields");
         setFormFields(fieldsResponse.data);
 
 
-        const eventNameResponse = await axios.get("http://localhost:5000/event-name");
+        const eventNameResponse = await axios.get("https://fossignup.onrender.com/event-name");
         setEventName(eventNameResponse.data.eventName || "Event Registration");
       } catch (error) {
         console.error("Error fetching initial data:", error);
@@ -87,7 +87,7 @@ const handlePrevious = () => {
       const dataToSubmit = finalFormData || formData;
       
       console.log("Submitting form data:", dataToSubmit);
-      await axios.post("http://localhost:5000/upload", dataToSubmit);
+      await axios.post("https://fossignup.onrender.com/upload", dataToSubmit);
       alert("Form Submitted & Saved to Google Drive!");
     } catch (error) {
       alert("Error uploading to Google Drive!");
@@ -106,7 +106,7 @@ const handlePrevious = () => {
     try {
       console.debug('Fetching admin credentials from server');
       // Fetch admin credentials from server
-      const response = await fetch('http://localhost:5000/admins');
+      const response = await fetch('https://fossignup.onrender.com/admins');
       
       if (!response.ok) {
         throw new Error(`Server responded with ${response.status}`);
