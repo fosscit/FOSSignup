@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import MultiStepForm from "D:/event-registration/src/components/MultiStepForm.js";
-import AdminDashboard from "D:/event-registration/src/components/AdminDashboard.js";
+import MultiStepForm from "./components/MultiStepForm.js";
+import AdminDashboard from "./components/AdminDashboard.js";
 
 
 // Protected route component
