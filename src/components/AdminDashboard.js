@@ -11,6 +11,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [driveFolderId, setDriveFolderId] = useState("");
   const [eventName, setEventName] = useState("");
+  const [eventDescription, setEventDescription] = useState("");
   const [formFields, setFormFields] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [newField, setNewField] = useState({ label: "", key: "", type: "text" });
@@ -55,16 +56,19 @@ export default function AdminDashboard() {
     
     fetchDriveFolderId();
     
-    const fetchEventName = async () => {
+    const fetchEventDetails = async () => {
       try {
-        const response = await axios.get("https://fossignup.onrender.com/event-name");
-        setEventName(response.data.eventName || "");
+        const eventNameResponse = await axios.get("https://fossignup.onrender.com/event-name");
+        setEventName(eventNameResponse.data.eventName || "");
+        
+        const eventDescResponse = await axios.get("https://fossignup.onrender.com/event-description");
+        setEventDescription(eventDescResponse.data.eventDescription || "");
       } catch (error) {
-        console.error("Error fetching event name:", error);
+        console.error("Error fetching event details:", error);
       }
     };
     
-    fetchEventName();
+    fetchEventDetails();
   }, [navigate]);
 
   const handleSaveDriveFolderId = async () => {
@@ -84,6 +88,16 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Error updating event name:", error);
       alert("Failed to update event name");
+    }
+  };
+  
+  const handleSaveEventDescription = async () => {
+    try {
+      await axios.post("https://fossignup.onrender.com/update-event-description", { eventDescription });
+      alert("Event description updated successfully");
+    } catch (error) {
+      console.error("Error updating event description:", error);
+      alert("Failed to update event description");
     }
   };
   
@@ -278,6 +292,33 @@ export default function AdminDashboard() {
                           </button>
                         </div>
                         <p className="text-muted small mt-2">This name will be displayed on the registration form and all related communications.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="row">
+                      <div className="col-md-3">
+                        <label htmlFor="eventDescription" className="form-label fw-bold mb-0 pt-2">Event Description:</label>
+                      </div>
+                      <div className="col-md-9">
+                        <div className="mb-2">
+                          <textarea
+                            id="eventDescription"
+                            className="form-control"
+                            value={eventDescription}
+                            onChange={(e) => setEventDescription(e.target.value)}
+                            placeholder="Enter event description"
+                            rows="4"
+                          ></textarea>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <p className="text-muted small mb-0">Provide details about the event that will help attendees understand what to expect.</p>
+                          <button
+                            onClick={handleSaveEventDescription}
+                            className="btn btn-info text-white"
+                          >
+                            Save Description
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
