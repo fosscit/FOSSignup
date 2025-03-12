@@ -12,8 +12,9 @@ const { Readable } = require('stream');
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: 'https://fossignup.netlify.app/',
-  credentials: true // If you need to support cookies/authentication
+  origin: 'https://fossignup.netlify.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Path to the form fields configuration file
