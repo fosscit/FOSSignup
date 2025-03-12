@@ -11,7 +11,10 @@ const { Readable } = require('stream');
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'https://fossignup.vercel.app',
+  credentials: true // If you need to support cookies/authentication
+}));
 
 // Path to the form fields configuration file
 const formFieldsPath = path.join(__dirname, "formFields.json");
