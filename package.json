@@ -24,7 +24,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "tailwind:init": "tailwindcss init -p"
+    "tailwind:init": "tailwindcss init -p",
+    "postinstall": "cd ../src && npm install && npm run build",
+    "start": "node index.js"
   },
   "eslintConfig": {
     "extends": [
