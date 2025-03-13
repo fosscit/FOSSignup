@@ -456,7 +456,7 @@ app.post('/admin/login', (req, res) => {
       username: adminUsername
     });
   } else {
-    res.status(401).json({ 
+    res.json({ 
       success: false, 
       message: 'Invalid credentials' 
     });
