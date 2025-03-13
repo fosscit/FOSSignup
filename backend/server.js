@@ -24,6 +24,11 @@ const CONFIG_FILE_PATH = path.join(__dirname, 'config.json');
 const formStatusFilePath = path.join(__dirname, "formStatus.json");
 
 
+// Add these at the top of your server.js file
+const submissionQueue = [];
+let processingInterval = null;
+const BATCH_PROCESSING_INTERVAL = 30000; // 30 seconds
+const SMALLER_BATCH_INTERVAL = 5000;
 
 
 // Initialize drive folder ID with default value if the file doesn't exist
@@ -656,16 +661,17 @@ app.post("/update-form-fields", async (req, res) => {
   }
 });
 
+
+
+// Update the upload endpoint to use the queue
 app.post("/upload", async (req, res) => {
   try {
     const formFields = getFormFields();
-    const driveService = await getDriveService();
-    const fileId = await getDriveFileId(driveService);
-    
     const timestamp = new Date().toISOString();
     
     console.log("Incoming form data:", JSON.stringify(req.body));
     
+    // Process the form data into a record
     const record = {};
     formFields.forEach(field => {
       console.log(`Processing field ${field.key} (${field.label}), incoming value:`, req.body[field.key]);
@@ -674,7 +680,7 @@ app.post("/upload", async (req, res) => {
         record[field.key] = req.body[field.key].toString().trim();
       } else {
         const value = req.body[field.key] !== undefined ? req.body[field.key] : 
-                     (req.body[field.label] !== undefined ? req.body[field.label] : '');
+                    (req.body[field.label] !== undefined ? req.body[field.label] : '');
         record[field.key] = value;
       }
       
@@ -682,49 +688,55 @@ app.post("/upload", async (req, res) => {
     });
     record.date = timestamp;
     
-    console.log("Final record to be written:", JSON.stringify(record));
+    console.log("Record added to queue:", JSON.stringify(record));
     
-    const existingData = await readRegistrationsFromDrive();
+    // Add the record to the queue
+    submissionQueue.push(record);
     
-    const headers = formFields.map(field => field.label);
-    headers.push('Date');
+    // Make sure the batch processing interval is running
+    startBatchProcessing();
     
-    let csvContent = headers.join(',') + '\n';
-    
-    existingData.forEach(entry => {
-      const rowValues = formFields.map(field => {
-        const value = entry[field.key] || 
-                     entry[field.label] || 
-                     entry[field.label.toLowerCase()] || 
-                     '';
-        return `"${value.toString().replace(/"/g, '""')}"`;
+    // If the queue is getting big, process immediately
+    if (submissionQueue.length > 10) {
+      processBatchSubmissions().catch(err => {
+        console.error("Error during immediate batch processing:", err);
       });
-      rowValues.push(`"${entry.Date || entry.date || ''}"`);
-      csvContent += rowValues.join(',') + '\n';
-    });
+    }
     
-    const newRecordValues = formFields.map(field => {
-      const value = record[field.key] || '';
-      return `"${value.toString().replace(/"/g, '""')}"`;
-    });
-    newRecordValues.push(`"${record.date}"`);
-    csvContent += newRecordValues.join(',') + '\n';
-    
-    await driveService.files.update({
-      fileId: fileId,
-      media: {
-        mimeType: "text/csv",
-        body: Readable.from([csvContent]),
-      },
-    });
-    
-    console.log('Registration added successfully');
     res.json({ message: "Registration submitted successfully" });
   } catch (error) {
     console.error("Error in upload:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
+// Start the batch processing when the server starts
+startBatchProcessing();
+
+// Add a cleanup function to process any remaining submissions when the server shuts down
+process.on('SIGINT', async () => {
+  console.log('Server shutting down, processing remaining submissions...');
+  if (processingInterval) {
+    clearInterval(processingInterval);
+    processingInterval = null;
+  }
+  
+  // Process in smaller batches during shutdown
+  while (submissionQueue.length > 0) {
+    try {
+      await processBatchSubmissions();
+    } catch (error) {
+      console.error("Error during shutdown processing:", error);
+      break;
+    }
+  }
+  
+  console.log('Graceful shutdown complete');
+  process.exit(0);
+});
+
+
+
 // Route to get all registrations
 app.get('/registrations', async (req, res) => {
   try {
@@ -796,6 +808,167 @@ app.post('/clear-csv', async (req, res) => {
     res.status(500).json({ error: "Failed to clear CSV" });
   }
 });
+
+
+
+
+// Function to start the batch processing timer
+function startBatchProcessing() {
+  if (processingInterval === null) {
+    console.log('Starting batch processing interval');
+    processingInterval = setInterval(() => {
+      // Check if there are items in the queue
+      if (submissionQueue.length > 0) {
+        processBatchSubmissions();
+        
+        // If there are still items after processing, schedule a quicker follow-up
+        if (submissionQueue.length > 0) {
+          // Clear the regular interval
+          clearInterval(processingInterval);
+          
+          // Set a shorter interval temporarily
+          processingInterval = setInterval(() => {
+            processBatchSubmissions();
+            
+            // If queue is empty, go back to regular interval
+            if (submissionQueue.length === 0) {
+              clearInterval(processingInterval);
+              processingInterval = setInterval(processBatchSubmissions, BATCH_PROCESSING_INTERVAL);
+            }
+          }, SMALLER_BATCH_INTERVAL);
+        }
+      }
+    }, BATCH_PROCESSING_INTERVAL);
+  }
+}
+
+// Function to process all queued submissions
+async function processBatchSubmissions() {
+  if (submissionQueue.length === 0) {
+    console.log('No submissions to process');
+    return;
+  }
+
+  // Process at most 50 submissions at once (reduce chance of timeout)
+  const batchSize = Math.min(50, submissionQueue.length);
+  console.log(`Processing batch of ${batchSize} submissions (${submissionQueue.length} total in queue)`);
+  
+  try {
+    // Get Drive service and file ID once for the batch
+    const driveService = await getDriveService();
+    const fileId = await getDriveFileId(driveService);
+    
+    // Get the latest version of the file
+    const existingCSV = await driveService.files.get({
+      fileId: fileId,
+      alt: 'media'
+    }).catch(err => {
+      // If file doesn't exist yet, return empty data
+      if (err.code === 404) return { data: '' };
+      throw err;
+    });
+    
+    // Parse existing data
+    let existingData = [];
+    if (existingCSV.data && existingCSV.data.trim()) {
+      existingData = await readRegistrationsFromDrive();
+    }
+    
+    // Get form fields
+    const formFields = getFormFields();
+    
+    // Prepare headers
+    const headers = formFields.map(field => field.label);
+    headers.push('Date');
+    
+    // Create CSV content with headers
+    let csvContent = headers.join(',') + '\n';
+    
+    // Add existing data
+    if (existingData.length > 0) {
+      existingData.forEach(entry => {
+        const rowValues = formFields.map(field => {
+          const value = entry[field.key] || 
+                      entry[field.label] || 
+                      entry[field.label.toLowerCase()] || 
+                      '';
+          return `"${value.toString().replace(/"/g, '""')}"`;
+        });
+        rowValues.push(`"${entry.Date || entry.date || ''}"`);
+        csvContent += rowValues.join(',') + '\n';
+      });
+    }
+    
+    // Copy the batch to process and remove from queue
+    const batchToProcess = submissionQueue.splice(0, batchSize);
+    
+    // Add all new records from the batch
+    batchToProcess.forEach(record => {
+      const newRecordValues = formFields.map(field => {
+        const value = record[field.key] || '';
+        return `"${value.toString().replace(/"/g, '""')}"`;
+      });
+      newRecordValues.push(`"${record.date}"`);
+      csvContent += newRecordValues.join(',') + '\n';
+    });
+    
+    // Update the file on Drive with retry logic
+    let success = false;
+    let retries = 0;
+    const maxRetries = 3; // Fewer retries for faster processing
+    const baseDelay = 200; // 200ms initial delay
+    
+    while (!success && retries < maxRetries) {
+      try {
+        await driveService.files.update({
+          fileId: fileId,
+          media: {
+            mimeType: "text/csv",
+            body: Readable.from([csvContent]),
+          },
+        });
+        
+        console.log(`Successfully processed batch of ${batchToProcess.length} submissions`);
+        success = true;
+      } catch (error) {
+        // If it's a conflict error (412) or other potentially recoverable error
+        if (error.code === 412 || error.code === 429 || error.code >= 500) {
+          retries++;
+          const delay = baseDelay * Math.pow(2, retries) + Math.random() * 100;
+          console.log(`Retry attempt ${retries} after ${delay}ms due to error:`, error);
+          
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          // Non-recoverable error
+          console.error("Error updating Drive file:", error);
+          // Put the failed submissions back in the queue
+          submissionQueue.unshift(...batchToProcess);
+          return;
+        }
+      }
+    }
+    
+    if (!success) {
+      console.error(`Failed to process batch after ${maxRetries} attempts`);
+      // Put the failed submissions back in the queue
+      submissionQueue.unshift(...batchToProcess);
+    }
+  } catch (error) {
+    console.error("Error processing batch submissions:", error);
+  }
+}
+
+// Add a keep-alive endpoint to prevent Render from spinning down
+app.get("/health", (req, res) => {
+  res.json({ 
+    status: "healthy",
+    queueLength: submissionQueue.length 
+  });
+});
+
+
+
 
 
 // Log environment variables for debugging
