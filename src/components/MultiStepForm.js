@@ -139,7 +139,7 @@ export default function MultiStepForm() {
       console.debug('Received admin credentials from server');
   
       // Check if credentials match
-      const isValid =  response.success === true; 
+      const isValid =  response.data.success === true; 
   
       console.debug('Admin authentication result:', isValid ? 'Success' : 'Failed');
   
