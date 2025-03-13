@@ -146,10 +146,6 @@ app.get("/form-status", (req, res) => {
     res.status(500).json({ error: "Failed to fetch form status" });
   }
 });
-app.get("/admins",(req,response)=> {
-  res.status(404)
-})
-
 
 // Endpoint to update the form status
 app.post("/update-form-status", (req, res) => {
@@ -438,11 +434,14 @@ const addRegistrationToDrive = async (formData) => {
 };
 
 
+
+
+// Replace your /admins endpoint with this
 app.post('/admin/login', (req, res) => {
   const { username, password } = req.body;
   
   // Get admin credentials from environment variables
-  const adminUsername = process.env.ADMIN_NAME;
+  const adminUsername = process.env.ADMIN_USERNAME;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
 
@@ -456,7 +455,7 @@ app.post('/admin/login', (req, res) => {
       username: adminUsername
     });
   } else {
-    res.json({ 
+    res.status(401).json({ 
       success: false, 
       message: 'Invalid credentials' 
     });
@@ -731,6 +730,37 @@ app.get('/registrations', async (req, res) => {
   }
 });
 
+// Route to get admin credentials from CSV
+app.get('/admins', (req, res) => {
+  console.debug('Received request for admin credentials');
+  
+  try {
+    // Use admin credentials from environment variables
+    const adminName = process.env.ADMIN_NAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    console.debug('Checking if admin credentials are configured in environment');
+    
+    if (!adminName || !adminPassword) {
+      console.error('Admin credentials not properly configured in environment variables');
+      return res.status(500).json({ error: 'Admin configuration error' });
+    }
+    
+    const adminData = {
+      username: adminName,
+      password: adminPassword
+    };
+    
+    console.debug('Successfully retrieved admin credentials from environment');
+    console.debug(`Admin username configured: ${adminName}`);
+    
+    res.json(adminData);
+  } catch (error) {
+    console.error('Error retrieving admin data:', error);
+    console.debug('Error details:', JSON.stringify(error, null, 2));
+    res.status(500).json({ error: 'Failed to retrieve admin data' });
+  }
+});
 
 
 
