@@ -144,10 +144,9 @@ export default function MultiStepForm() {
       console.debug('Admin authentication result:', isValid ? 'Success' : 'Failed');
   
       if (isValid) {
-        console.debug(`Successfully authenticated admin: ${adminData.username}`);
         // Set admin session/token/etc
         localStorage.setItem("adminLoggedIn", "true");
-        localStorage.setItem("adminName", adminData.username);
+        localStorage.setItem("adminName",adminCredentials.username);
         
         // Navigate to admin dashboard
         console.debug('Redirecting to admin dashboard');
