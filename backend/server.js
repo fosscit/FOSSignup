@@ -441,7 +441,7 @@ app.post('/admin/login', (req, res) => {
   const { username, password } = req.body;
   
   // Get admin credentials from environment variables
-  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminUsername = process.env.ADMIN_NAME;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
 
