@@ -137,7 +137,7 @@ const handleAdminLogin = async (e) => {
   try {
     console.debug('Making login request to server');
     // Use axios to make the request to the /admin/login endpoint
-    const response = await axios.post('https://fossignup.onrender.com/admin/login', {
+    const response = await axios.post('https://fossignup.onrender.com/admins', {
       username: adminCredentials.username,
       password: adminCredentials.password
     });
