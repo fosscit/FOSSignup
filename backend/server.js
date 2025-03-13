@@ -437,15 +437,21 @@ const addRegistrationToDrive = async (formData) => {
 
 
 // Replace your /admins endpoint with this
+// Replace your /admin/login endpoint with this corrected version
 app.post('/admin/login', (req, res) => {
   const { username, password } = req.body;
   
-  // Get admin credentials from environment variables
-  const adminUsername = process.env.ADMIN_NAME;
+  console.log("Admin login attempt:", username);
+  
+  // Check both possible environment variable names
+  const adminUsername = process.env.ADMIN_USERNAME || process.env.ADMIN_NAME;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
-
-  console.log("Login attempt:", username);
+  // Log the actual values being compared (without showing the full password)
+  console.log("Checking credentials:");
+  console.log("- Request username:", username);
+  console.log("- ENV username:", adminUsername);
+  console.log("- Password match:", password === adminPassword);
   
   if (username === adminUsername && password === adminPassword) {
     // You might want to implement a proper JWT token here for better security
