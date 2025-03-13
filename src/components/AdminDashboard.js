@@ -9,7 +9,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 export default function AdminDashboard() {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [driveFolderId, setDriveFolderId] = useState("");
+  const [driveFolderId, setDriveFolderId] = useState("");a
   const [eventName, setEventName] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [formActive, setFormActive] = useState(true);
