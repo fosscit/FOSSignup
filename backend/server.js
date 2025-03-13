@@ -146,6 +146,9 @@ app.get("/form-status", (req, res) => {
     res.status(500).json({ error: "Failed to fetch form status" });
   }
 });
+app.get("/admins",(req,response)=> {
+  res.status(404)
+})
 
 // Endpoint to update the form status
 app.post("/update-form-status", (req, res) => {
