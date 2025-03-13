@@ -126,59 +126,55 @@ export default function MultiStepForm() {
     }
   };
 
-  const handleAdminLogin = async (e) => {
-    e.preventDefault();
-    console.debug('Admin login attempt initiated');
-    console.debug(`Login attempt for username: ${adminCredentials.username}`);
-    
-    setIsLoading(true);
-    setLoginError("");
+const handleAdminLogin = async (e) => {
+  e.preventDefault();
+  console.debug('Admin login attempt initiated');
+  console.debug(`Login attempt for username: ${adminCredentials.username}`);
   
-    try {
-      console.debug('Fetching admin credentials from server');
-      // Fetch admin credentials from server
-      const response = await fetch('https://fossignup.onrender.com/admins');
-      
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
-      }
-      
-      const adminData = await response.json();
-      console.debug('Received admin credentials from server');
-  
-      // Check if credentials match
-      const isValid = 
-        adminCredentials.username === adminData.username && 
-        adminCredentials.password === adminData.password;
-  
-      console.debug('Admin authentication result:', isValid ? 'Success' : 'Failed');
-  
-      if (isValid) {
-        console.debug(`Successfully authenticated admin: ${adminData.username}`);
-        // Set admin session/token/etc
-        localStorage.setItem("adminLoggedIn", "true");
-        localStorage.setItem("adminName", adminData.username);
-        
-        // Navigate to admin dashboard
-        console.debug('Redirecting to admin dashboard');
-        navigate("/admin-dashboard");
-      } else {
-        console.debug('Authentication failed: Invalid credentials');
-        setLoginError("Invalid username or password");
-      }
-    } catch (error) {
-      console.error('Error during admin login:', error);
-      console.debug('Error type:', error.name);
-      console.debug('Error message:', error.message);
-      console.debug('Is network error:', error instanceof TypeError);
-    
-      setLoginError("Login service unavailable");
-    } finally {
-      console.debug('Admin login process completed');
-      setIsLoading(false);
-    }
-  };
+  setIsLoading(true);
+  setLoginError("");
 
+  try {
+    console.debug('Making login request to server');
+    // Use axios to make the request to the /admin/login endpoint
+    const response = await axios.post('https://fossignup.onrender.com/admin/login', {
+      username: adminCredentials.username,
+      password: adminCredentials.password
+    });
+    
+    console.debug('Received login response from server');
+
+    if (response.data.success) {
+      console.debug(`Successfully authenticated admin: ${response.data.username}`);
+      // Set admin session/token/etc
+      localStorage.setItem("adminLoggedIn", "true");
+      localStorage.setItem("adminName", response.data.username);
+      
+      // Navigate to admin dashboard
+      console.debug('Redirecting to admin dashboard');
+      navigate("/admin-dashboard");
+    } else {
+      console.debug('Authentication failed: Server returned failure');
+      setLoginError("Invalid username or password");
+    }
+  } catch (error) {
+    console.error('Error during admin login:', error);
+    console.debug('Error type:', error.name);
+    console.debug('Error message:', error.message);
+    
+    // Handle 401 Unauthorized specifically
+    if (error.response && error.response.status === 401) {
+      setLoginError("Invalid username or password");
+    } else {
+      setLoginError("Login service unavailable");
+    }
+  } finally {
+    console.debug('Admin login process completed');
+    setIsLoading(false);
+  }
+};
+
+  
   const handleAdminInputChange = (e) => {
     const { name, value } = e.target;
     setAdminCredentials(prev => ({
