@@ -149,8 +149,7 @@ const handleAdminLogin = async (e) => {
       // Set admin session/token/etc
       localStorage.setItem("adminLoggedIn", "true");
       localStorage.setItem("adminName", response.data.username);
-      
-      // Navigate to admin dashboard
+          // Navigate to admin dashboard
       console.debug('Redirecting to admin dashboard');
       navigate("/admin-dashboard");
     } else {
@@ -161,6 +160,7 @@ const handleAdminLogin = async (e) => {
     console.error('Error during admin login:', error);
     console.debug('Error type:', error.name);
     console.debug('Error message:', error.message);
+
     
     // Handle 401 Unauthorized specifically
     if (error.response && error.response.status === 401) {
