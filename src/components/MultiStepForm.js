@@ -530,7 +530,7 @@ const handleAdminLogin = async (e) => {
       
       {/* Footer */}
       <div className="footer mt-auto py-2">
-        <p className="text-center mb-0 small">Together, we build the future of open source |© FOSS-CIT 2024-25 | Developed by: Lithika Rajkumar</p>
+        <p className="text-center mb-0 small">Together, we build the future of open source ||© FOSS-CIT 2024-25 ||Developed by: Lithika Rajkumar|Vishal D|Anush M</p>
       </div>
     </div>
   );
