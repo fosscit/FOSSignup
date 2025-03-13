@@ -31,8 +31,8 @@ export default function MultiStepForm() {
     const fetchInitialData = async () => {
       try {
         // Fetch admin list
-        const adminResponse = await axios.get("https://fossignup.onrender.com/admins");
-        setAdminList(adminResponse.data);
+        //const adminResponse = await axios.get("https://fossignup.onrender.com/admin/login");
+        //setAdminList(adminResponse.data);
         
         // Fetch form fields configuration
         const fieldsResponse = await axios.get("https://fossignup.onrender.com/form-fields");
@@ -137,7 +137,7 @@ const handleAdminLogin = async (e) => {
   try {
     console.debug('Making login request to server');
     // Use axios to make the request to the /admin/login endpoint
-    const response = await axios.post('https://fossignup.onrender.com/admins', {
+    const response = await axios.post('https://fossignup.onrender.com/admin/login', {
       username: adminCredentials.username,
       password: adminCredentials.password
     });
