@@ -19,6 +19,7 @@ export default function MultiStepForm() {
     organizer: "FOSS Club of CIT"
   });
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
+  const [adminList, setAdminList] = useState([]);
   const [loginError, setLoginError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [formFields, setFormFields] = useState([]);
@@ -30,6 +31,8 @@ export default function MultiStepForm() {
     const fetchInitialData = async () => {
       try {
         // Fetch admin list
+        const adminResponse = await axios.get("https://fossignup.onrender.com/admins");
+        setAdminList(adminResponse.data);
         
         // Fetch form fields configuration
         const fieldsResponse = await axios.get("https://fossignup.onrender.com/form-fields");
@@ -134,19 +137,27 @@ export default function MultiStepForm() {
     try {
       console.debug('Fetching admin credentials from server');
       // Fetch admin credentials from server
-      const response = await axios.post('https://fossignup.onrender.com/admin/login',{username : adminCredentials.username, password: adminCredentials.password});
+      const response = await fetch('https://fossignup.onrender.com/admins');
       
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+      
+      const adminData = await response.json();
       console.debug('Received admin credentials from server');
   
       // Check if credentials match
-      const isValid =  response.success === true; 
+      const isValid = 
+        adminCredentials.username === adminData.username && 
+        adminCredentials.password === adminData.password;
   
       console.debug('Admin authentication result:', isValid ? 'Success' : 'Failed');
   
       if (isValid) {
+        console.debug(`Successfully authenticated admin: ${adminData.username}`);
         // Set admin session/token/etc
         localStorage.setItem("adminLoggedIn", "true");
-        localStorage.setItem("adminName",adminCredentials.username);
+        localStorage.setItem("adminName", adminData.username);
         
         // Navigate to admin dashboard
         console.debug('Redirecting to admin dashboard');
@@ -304,9 +315,9 @@ export default function MultiStepForm() {
           $ npm install<br />
           $ npm start<br />
           <br />
-          $ Starting development server...<br />
-          $ FOSS Club registration server running on port 3000<br />
-          $ Ready for new contributors!<br />
+          > Starting development server...<br />
+          > FOSS Club registration server running on port 3000<br />
+          > Ready for new contributors!<br />
         </div>
         <div className="terminal-text right-text">
           &lt;div className="open-source"&gt;<br />
