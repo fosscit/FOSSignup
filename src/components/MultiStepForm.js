@@ -529,9 +529,9 @@ const handleAdminLogin = async (e) => {
       </div>
       
       {/* Footer */}
-      <div className="footer mt-auto py-2">
-        <p className="text-center mb-0 small">Together, we build the future of open source ||© FOSS-CIT 2024-25 ||Developed by: Lithika Rajkumar|Vishal D|Anush M</p>
-      </div>
+      <div className="footer mt-auto py-3">
+  <p className="text-center mb-0">Together, we build the future of Open Source • © FOSS-CIT 2025 • Developed by: Lithika Rajkumar | Vishal D | Anush M</p>
+</div>
     </div>
   );
 }
