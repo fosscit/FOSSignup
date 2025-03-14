@@ -663,13 +663,49 @@ app.post("/update-form-fields", async (req, res) => {
 
 
 
-// Update the upload endpoint to use the queue
+// Function to check if an email already exists in the registrations
+const emailExists = async (email) => {
+  try {
+    // Get all existing registrations
+    const registrations = await readRegistrationsFromDrive();
+    
+    // Check if any existing registration has the same email
+    // Need to check both lowercase versions to ensure case-insensitive matching
+    return registrations.some(registration => {
+      const existingEmail = registration.email || registration.Email || '';
+      return existingEmail.toLowerCase() === email.toLowerCase();
+    });
+  } catch (error) {
+    console.error("Error checking if email exists:", error);
+    // If there's an error, we'll return false to allow the submission
+    // This is a conservative approach to prevent blocking legitimate users
+    return false;
+  }
+};
+
+// Update the upload endpoint to check for duplicate emails
 app.post("/upload", async (req, res) => {
   try {
     const formFields = getFormFields();
     const timestamp = new Date().toISOString();
     
     console.log("Incoming form data:", JSON.stringify(req.body));
+    
+    // Check if the form contains an email field
+    const emailField = formFields.find(field => field.type === 'email');
+    
+    if (emailField && req.body[emailField.key]) {
+      const email = req.body[emailField.key];
+      
+      // Check if this email already exists in registrations
+      const isExistingEmail = await emailExists(email);
+      
+      if (isExistingEmail) {
+        return res.status(400).json({ 
+          error: "You've already registered!"
+        });
+      }
+    }
     
     // Process the form data into a record
     const record = {};
@@ -709,32 +745,6 @@ app.post("/upload", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-// Start the batch processing when the server starts
-startBatchProcessing();
-
-// Add a cleanup function to process any remaining submissions when the server shuts down
-process.on('SIGINT', async () => {
-  console.log('Server shutting down, processing remaining submissions...');
-  if (processingInterval) {
-    clearInterval(processingInterval);
-    processingInterval = null;
-  }
-  
-  // Process in smaller batches during shutdown
-  while (submissionQueue.length > 0) {
-    try {
-      await processBatchSubmissions();
-    } catch (error) {
-      console.error("Error during shutdown processing:", error);
-      break;
-    }
-  }
-  
-  console.log('Graceful shutdown complete');
-  process.exit(0);
-});
-
 
 
 // Route to get all registrations
