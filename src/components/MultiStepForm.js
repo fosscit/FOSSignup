@@ -111,20 +111,27 @@ export default function MultiStepForm() {
     setStep(-1);
   };
 
-  const handleSubmit = async (finalFormData) => {
+ const handleSubmit = async (finalFormData) => {
+  try {
+    const dataToSubmit = finalFormData || formData;
+    console.log("Submitting form data:", dataToSubmit);
+    
+    // Make the API call and get the response
+    const response = await axios.post("https://fossignup.onrender.com/upload", dataToSubmit);
+    
+    // If successful, set submitted to true
     setSubmitted(true);
-    try {
-      // Use the finalFormData parameter instead of the state
-      const dataToSubmit = finalFormData || formData;
-      
-      console.log("Submitting form data:", dataToSubmit);
-      await axios.post("https://fossignup.onrender.com/upload", dataToSubmit);
-      alert("Form Submitted & Saved to Google Drive!");
-    } catch (error) {
+    alert("Form Submitted & Saved to Google Drive!");
+  } catch (error) {
+    // Check if it's a duplicate email error
+    if (error.response && error.response.status === 400 && error.response.data.error) {
+      alert(error.response.data.error || "You've already registered");
+    } else {
       alert("Error uploading to Google Drive!");
       console.error(error);
     }
-  };
+  }
+};
 
 const handleAdminLogin = async (e) => {
   e.preventDefault();
