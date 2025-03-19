@@ -284,7 +284,7 @@ const handleAdminLogin = async (e) => {
             className="me-2 logo-image" 
           />
           
-          <h1><span className="accent">FOSS Club of CIT</span> {eventName} Registration form</h1>
+          <h1><span className="accent">FOSS Club of CIT</span> {eventName}</h1>
         </div>
         <div className="d-flex align-items-center">
           {step >= 0 && (
